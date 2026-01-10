@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>タイマー</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ← ここにメニューボタンを追加 -->
+  <button id="menu-btn">メニュー</button>
+
+  <div id="input-screen">
+    <label>勉強時間（分）：<input type="number" id="study-time" /></label><br />
+    <label>休憩時間（分）：<input type="number" id="break-time" /></label><br />
+    <button id="start-btn">スタート</button>
+  </div>
+
+  <div id="timer-screen" style="display: none;">
+    <h1>残り時間</h1>
+    <span id="current-phase-display"></span>
+    <h2 id="countdown">00:00</h2>
+  </div>
+
+
+
+  <!-- メニュー用オーバーレイ -->
+  <div id="menu-overlay" style="display: none;">
+    <div class="menu-header">
+      <button id="menu-close">×</button>
+    </div>
+    <ul class="menu-list">
+      <li><a href="weekly-study.html">今週の勉強時間</a></li>
+      <li><a href="total-study.html">今までの勉強時間</a></li>
+      <li><a href="performance.html">成績の変遷</a></li>
+    </ul>
+  </div>
+
+  <audio id="alarm-sound"
+    src="https://www.soundjay.com/buttons/sounds/beep-07.mp3"></audio>
+  <script src="script.js"></script>
+
+  <h2>お気に入りセット管理</h2>
+
+<!-- 新しいセットを登録する入力欄 -->
+<label>セット名: <input type="text" id="set-name"></label>
+<label>勉強時間(分): <input type="number" id="set-study" min="1"></label>
+<label>休憩時間(分): <input type="number" id="set-break" min="1"></label>
+<button onclick="
+  saveSet(
+    document.getElementById('set-name').value,
+    parseInt(document.getElementById('set-study').value),
+    parseInt(document.getElementById('set-break').value)
+  )
+">保存</button>
+
+<!-- 保存済みのセットをリスト表示 -->
+<h3>登録済みセット（最大5件）</h3>
+<ul id="set-list"></ul>
+
+
+</body>
+</html>

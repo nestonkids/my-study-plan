@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>成績の変遷</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js 読み込み -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <button onclick="history.back()">← 戻る</button>
+  <h1>成績の変遷</h1>
+
+  <!-- 成績入力欄 -->
+  <div id="grade-input">
+    <label>成績を入力してください（数値）:
+      <input type="number" id="grade-value" step="0.1" />
+    </label>
+    <button id="save-grade">保存</button>
+  </div>
+
+  <!-- 成績一覧 -->
+  <h2>これまでの成績</h2>
+  <ul id="grade-list"></ul>
+
+  <!-- 折れ線グラフ -->
+  <h2>成績グラフ</h2>
+  <canvas id="grade-chart" width="400" height="200"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>

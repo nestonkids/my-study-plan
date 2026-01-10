@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>今までの勉強時間</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <button onclick="history.back()">← 戻る</button>
+  <h1>今までの累積勉強時間</h1>
+  <h2 id="study-hours">-- 時間</h2>
+
+  <script>
+    const totalMinutes = Number(localStorage.getItem('totalStudyMinutes')) || 0;
+    const hours = Math.floor(totalMinutes / 60); // 1時間未満切り捨て
+    document.getElementById('study-hours').textContent = `${hours} 時間`;
+  </script>
+</body>
+</html>

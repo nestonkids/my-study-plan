@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>今週の勉強時間</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <button class="back-button" onclick="history.back()">← 戻る</button>
+  
+  <h1>今週の累積勉強時間</h1>
+  <h2 id="weekly-hours">-- 時間</h2>
+
+  <h1>曜日ごとの勉強時間（グラフ）</h1>
+  <canvas id="dailyChart" width="320" height="200"></canvas>
+
+  <script>
+    // 週の合計時間を表示
+    const weeklyMinutes = Number(localStorage.getItem('weeklyStudyMinutes')) || 0;
+    const weeklyHours = (weeklyMinutes / 60).toFixed(1); // 小数点第1位まで固定表示
+    document.getElementById('weekly-hours').textContent = `${weeklyHours} 時間`;
+
+    // 月曜の自動リセット
+    (function resetOnLoad() {
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon
+      const lastReset = localStorage.getItem('dailyLastReset');
+      const lastDate = lastReset ? new Date(lastReset) : null;
+      const lastDay = lastDate ? lastDate.getDay() : null;
+
+      if (dayOfWeek === 1 && lastDay !== 1) {
+        for (let i = 0; i < 7; i++) {
+          localStorage.setItem(`dailyStudy_${i}`, 0);
+        }
+        localStorage.setItem('dailyLastReset', today.toISOString());
+      }
+    })();
+
+    // 各曜日のデータを取得してグラフ描画
+    const labels = ['日', '月', '火', '水', '木', '金', '土'];
+    const dataHours = labels.map((_, idx) => {
+      // localStorageには「分」で保存されているので、時間に変換する
+      const minutes = Number(localStorage.getItem(`dailyStudy_${idx}`)) || 0;
+      // 数値として小数点第1位までの値を取得（グラフの高さに反映させるため）
+      return parseFloat((minutes / 60).toFixed(1));
+    });
+
+    // グラフ描画
+    const ctx = document.getElementById('dailyChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar', // 折れ線(line)から棒グラフ(bar)に変更
+      data: {
+        labels: labels,
+        datasets: [{
+          label: '勉強時間（時間）',
+          data: dataHours,
+          borderColor: '#77ebff',
+          backgroundColor: 'rgba(119, 235, 255, 0.6)', // 棒グラフに合わせて少し濃く
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            suggestedMax: 10, // 基本の上限を10時間に設定
+            title: {
+                display: true,
+                text: '時間' // Y軸の単位を時間に変更
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
