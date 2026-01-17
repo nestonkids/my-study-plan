@@ -13,6 +13,7 @@ const body = document.body; // body要素への参照
 
 let timer;             // setInterval のIDを保存（途中で止めるため必要）
 let totalTime = 0;     // 合計時間を保存するための変数（今回は未使用）
+let resumedState = null; // 一時停止したタイマーの状態を保持する変数
 
 /**
  * タイマーを開始する関数
@@ -50,6 +51,7 @@ function startTimer(duration, nextPhase) {
         timerScreen.style.display = 'none';         // タイマー画面を非表示
         currentPhaseDisplay.textContent = '';       // フェーズ表示をクリア
         body.classList.remove('break-mode');        // break-mode を削除
+        startBtn.style.display = 'block';           // ボタンを再表示する
       }
     }
   }, 1000); // 1000msごとに実行（＝1秒）
@@ -95,24 +97,91 @@ function updateDisplay(seconds) {
 }
 
 // ---------------------- スタートボタンの処理 ----------------------
-startBtn.addEventListener('click', () => {
-  // --- 音声再生のロックを解除 ---
-  alarmSound.play();
-  alarmSound.pause();
-  // --------------------------
+if (startBtn) {
+  // --- ページ離脱時にタイマーの状態を保存する ---
+  window.addEventListener('beforeunload', () => {
+    // タイマーが動作中（タイマー画面が表示されている）かつ、一時停止状態でない場合
+    if (timerScreen.style.display === 'block' && !resumedState) {
+      clearInterval(timer); // 有効なタイマーを停止
 
-  const studyTime = Number(studyInput.value); // 入力された勉強時間（分）
-  const breakTime = Number(breakInput.value); // 入力された休憩時間（分）
+      const timeParts = countdownEl.textContent.split(':');
+      const remainingSeconds = parseInt(timeParts[0], 10) * 60 + parseInt(timeParts[1], 10);
 
-  if (studyTime > 0 && breakTime > 0) {
-    inputScreen.style.display = 'none';   // 入力画面を非表示
-    timerScreen.style.display = 'block';  // タイマー画面を表示
-    currentPhaseDisplay.textContent = '勉強時間'; // フェーズ表示を更新
-    body.classList.remove('break-mode');        // break-mode が残っていれば削除
-    body.classList.add('study-mode');           // study-mode を追加
-    startTimer(studyTime * 60, 'break');  // 勉強フェーズのタイマー開始
+      if (remainingSeconds > 0) {
+        const pausedTimerState = {
+          remainingTime: remainingSeconds,
+          phase: body.classList.contains('study-mode') ? 'study' : 'break',
+          studyDuration: studyInput.value,
+          breakDuration: breakInput.value,
+        };
+        localStorage.setItem('pausedTimerState', JSON.stringify(pausedTimerState));
+      }
+    }
+  });
+
+  // --- ページ読み込み時に一時停止状態を復元する ---
+  const pausedStateJSON = localStorage.getItem('pausedTimerState');
+  if (pausedStateJSON) {
+    const pausedState = JSON.parse(pausedStateJSON);
+    resumedState = pausedState; // クリックハンドラで使えるように保存
+
+    // UIを復元
+    studyInput.value = pausedState.studyDuration;
+    breakInput.value = pausedState.breakDuration;
+    inputScreen.style.display = 'none';
+    timerScreen.style.display = 'block';
+    updateDisplay(pausedState.remainingTime);
+
+    if (pausedState.phase === 'study') {
+      currentPhaseDisplay.textContent = '勉強時間 (一時停止中)';
+      body.classList.add('study-mode');
+    } else {
+      currentPhaseDisplay.textContent = '休憩時間 (一時停止中)';
+      body.classList.add('break-mode');
+    }
+    startBtn.textContent = '再開'; // ボタンのテキストを変更
   }
-});
+
+  // --- スタート・再開ボタンの処理 ---
+  startBtn.addEventListener('click', () => {
+    // --- 音声再生のロックを解除 ---
+    alarmSound.play();
+    alarmSound.pause();
+    // --------------------------
+
+    if (resumedState) {
+      // --- 再開処理 ---
+      const duration = resumedState.remainingTime;
+      const nextPhase = resumedState.phase === 'study' ? 'break' : 'end';
+      
+      currentPhaseDisplay.textContent = resumedState.phase === 'study' ? '勉強時間' : '休憩時間';
+      startBtn.textContent = 'スタート'; // ボタンのテキストを元に戻す
+
+      // bodyのクラスを正しく設定
+      body.classList.toggle('study-mode', resumedState.phase === 'study');
+      body.classList.toggle('break-mode', resumedState.phase === 'break');
+
+      startTimer(duration, nextPhase);
+      localStorage.removeItem('pausedTimerState'); // 使用済みの状態を削除
+      resumedState = null; // 再開後は状態をクリア
+      startBtn.style.display = 'none'; // ボタンを非表示にする
+    } else {
+      // --- 新規スタート処理 ---
+      const studyTime = Number(studyInput.value);
+      const breakTime = Number(breakInput.value);
+
+      if (studyTime > 0 && breakTime > 0) {
+        inputScreen.style.display = 'none';
+        timerScreen.style.display = 'block';
+        currentPhaseDisplay.textContent = '勉強時間';
+        body.classList.remove('break-mode');
+        body.classList.add('study-mode');
+        startTimer(studyTime * 60, 'break');
+        startBtn.style.display = 'none'; // ボタンを非表示にする
+      }
+    }
+  });
+}
 
 // ---------------------- メニューの表示制御 ----------------------
 const menuBtn   = document.getElementById('menu-btn');       // メニューボタン
@@ -120,14 +189,18 @@ const menuOverlay = document.getElementById('menu-overlay'); // メニュー画�
 const menuClose = document.getElementById('menu-close');     // 閉じるボタン
 
 // メニューボタンを押したらオーバーレイ表示
-menuBtn.addEventListener('click', () => {
-  menuOverlay.style.display = 'flex';
-});
+if (menuBtn) {
+  menuBtn.addEventListener('click', () => {
+    menuOverlay.style.display = 'flex';
+  });
+}
 
 // 閉じるボタンを押したらオーバーレイ非表示
-menuClose.addEventListener('click', () => {
-  menuOverlay.style.display = 'none';
-});
+if (menuClose) {
+  menuClose.addEventListener('click', () => {
+    menuOverlay.style.display = 'none';
+  });
+}
 
 /**
  * 月曜になったら dailyStudy_0〜6 をリセット
@@ -238,21 +311,19 @@ if (document.getElementById("save-grade")) {
     });
   }
 
-  // ページ読み込み時の初期処理
-  document.addEventListener("DOMContentLoaded", () => {
-    renderGradeList();   // 一覧表示
-    renderGradeChart();  // グラフ描画
+  // ページ読み込み時の初期処理を直接実行
+  renderGradeList();   // 一覧表示
+  renderGradeChart();  // グラフ描画
 
-    // 保存ボタンのクリックイベント
-    document.getElementById("save-grade").addEventListener("click", () => {
-      const value = document.getElementById("grade-value").value;
-      if (value !== "") {
-        saveGrade(value);     // 保存
-        renderGradeList();    // 一覧更新
-        renderGradeChart();   // グラフ更新
-        document.getElementById("grade-value").value = ""; // 入力欄をリセット
-      }
-    });
+  // 保存ボタンのクリックイベントを直接設定
+  document.getElementById("save-grade").addEventListener("click", () => {
+    const value = document.getElementById("grade-value").value;
+    if (value !== "") {
+      saveGrade(value);     // 保存
+      renderGradeList();    // 一覧更新
+      renderGradeChart();   // グラフ更新
+      document.getElementById("grade-value").value = ""; // 入力欄をリセット
+    }
   });
 }
 // =================================

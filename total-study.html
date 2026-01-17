@@ -12,8 +12,9 @@
 
   <script>
     const totalMinutes = Number(localStorage.getItem('totalStudyMinutes')) || 0;
-    const hours = Math.floor(totalMinutes / 60); // 1時間未満切り捨て
-    document.getElementById('study-hours').textContent = `${hours} 時間`;
+    const totalHours = totalMinutes / 60;
+    const roundedHours = Math.round(totalHours * 10) / 10; // 小数点第二位を四捨五入して小数点第一位まで表示
+    document.getElementById('study-hours').textContent = `${roundedHours} 時間`;
   </script>
 </body>
 </html>
