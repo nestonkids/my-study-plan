@@ -15,6 +15,14 @@
     <label>休憩時間（分）：<input type="number" id="break-time" /></label><br />
   </div>
 
+  <!-- 目標達成度プログレスバー -->
+  <div id="progress-container" style="display: none;"> <!-- 初期状態は非表示、目標設定があれば表示 -->
+    <p id="progress-text">今日の目標まで あと -- 分</p>
+    <div id="progress-bar-bg">
+      <div id="progress-fill"></div>
+    </div>
+  </div>
+
   <div id="timer-screen" style="display: none;">
     <h1>残り時間</h1>
     <span id="current-phase-display"></span>
@@ -58,10 +66,19 @@
     ">保存</button>
   </div>
 
-<!-- 保存済みのセットをリスト表示 -->
-<h3>登録済みセット（最大5件）</h3>
-<ul id="set-list"></ul>
+  <!-- 保存済みのセットをリスト表示 -->
+  <h3>登録済みセット（最大5件）</h3>
+  <ul id="set-list"></ul>
+
+  <hr>
+
+  <h2>学習目標設定</h2>
+  <div class="goal-setting-area">
+    <p>平日と休日で目標を変えられます。</p>
+    <label>平日目標 (分): <input type="number" id="goal-weekday" min="1"></label>
+    <label>休日目標 (分): <input type="number" id="goal-weekend" min="1"></label>
+    <button onclick="saveGoals()">目標を保存</button>
+  </div>
 
 
-</body>
-</html>
+</body></html>

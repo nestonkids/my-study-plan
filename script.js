@@ -267,6 +267,11 @@ function saveDailyMinutes(minutes) {
   const key = `dailyStudy_${today.getDay()}`;
   const prev = Number(localStorage.getItem(key)) || 0;
   localStorage.setItem(key, prev + minutes);
+  
+  // プログレスバーがあれば更新
+  if (typeof updateProgressBar === 'function') {
+    updateProgressBar();
+  }
 }
 
 // ======================= 成績管理機能 =======================
@@ -478,6 +483,87 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ======================= 目標管理＆プログレスバー機能 =======================
+
+const GOAL_KEY_WEEKDAY = 'goal_weekday';
+const GOAL_KEY_WEEKEND = 'goal_weekend';
+
+// 目標を保存
+function saveGoals() {
+  const weekday = document.getElementById('goal-weekday').value;
+  const weekend = document.getElementById('goal-weekend').value;
+
+  if (weekday > 0 && weekend > 0) {
+    localStorage.setItem(GOAL_KEY_WEEKDAY, weekday);
+    localStorage.setItem(GOAL_KEY_WEEKEND, weekend);
+    alert('目標を保存しました！');
+    updateProgressBar(); // バーを即時更新
+  } else {
+    alert('平日・休日ともに1分以上の目標を設定してください。');
+  }
+}
+
+// 保存された目標を入力欄に反映
+function loadGoals() {
+  const weekday = localStorage.getItem(GOAL_KEY_WEEKDAY);
+  const weekend = localStorage.getItem(GOAL_KEY_WEEKEND);
+
+  if (document.getElementById('goal-weekday')) {
+    if (weekday) document.getElementById('goal-weekday').value = weekday;
+    if (weekend) document.getElementById('goal-weekend').value = weekend;
+  }
+}
+
+// プログレスバーを更新
+function updateProgressBar() {
+  const container = document.getElementById('progress-container');
+  if (!container) return;
+
+  const today = new Date();
+  const day = today.getDay(); // 0:日, 6:土
+  const isWeekend = (day === 0 || day === 6);
+
+  // 目標時間の取得（未設定なら表示しない）
+  const goalMinutes = Number(localStorage.getItem(isWeekend ? GOAL_KEY_WEEKEND : GOAL_KEY_WEEKDAY));
+  
+  if (!goalMinutes || goalMinutes <= 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  // 今日の勉強時間を取得
+  const currentMinutes = Number(localStorage.getItem(`dailyStudy_${day}`)) || 0;
+
+  // 表示オン
+  container.style.display = 'block';
+
+  // 達成率計算
+  let percentage = (currentMinutes / goalMinutes) * 100;
+  if (percentage > 100) percentage = 100;
+
+  const remaining = goalMinutes - currentMinutes;
+  const textEl = document.getElementById('progress-text');
+  const fillEl = document.getElementById('progress-fill');
+
+  // テキスト更新
+  if (remaining > 0) {
+    textEl.textContent = `今日の目標まで あと ${remaining} 分`;
+  } else {
+    textEl.textContent = `今日の目標達成！ (${currentMinutes}分 / ${goalMinutes}分)`;
+  }
+
+  // バーの長さ更新
+  fillEl.style.width = `${percentage}%`;
+  
+  // 達成したら色を変える（例えばゴールドに）
+  if (percentage >= 100) {
+    fillEl.style.background = 'linear-gradient(90deg, #ffd700, #ff8c00)';
+  } else {
+    fillEl.style.background = 'linear-gradient(90deg, #77ebff, #00bfff)';
+  }
+}
+
+// ページ読み込み時に実行
 // ======================= ストップウォッチ機能 =======================
 if (document.getElementById('stopwatch-btn')) {
   const stopwatchBtn = document.getElementById('stopwatch-btn');
@@ -517,6 +603,10 @@ if (document.getElementById('stopwatch-btn')) {
            saveWeeklyMinutes(elapsedMinutes);
         }
         alert(`${elapsedMinutes}分間の勉強時間を記録しました。`);
+        // プログレスバーがあれば更新（ストップウォッチで増えた分を反映）
+        if (typeof updateProgressBar === 'function') {
+           updateProgressBar();
+        }
       } else {
         alert('1分未満の計測は記録されません。');
       }
