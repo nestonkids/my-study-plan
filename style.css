@@ -16,18 +16,21 @@ body {
   display: block;
   margin-bottom: 15px;
   font-size: 18px;
+  font-weight: bold;
+  color: #555;
 }
 
 input[type="number"],
 input[type="text"] {
   width: 100%;
-  max-width: 200px;
+  max-width: 300px;
   padding: 12px;
   margin-top: 5px;
   font-size: 18px;
   border: 1px solid #ccc;
   border-radius: 8px;
   box-sizing: border-box;
+  background-color: #fff;
 }
 
 /* ボタン共通設定 */
@@ -65,12 +68,15 @@ button:active {
   z-index: 100;
   width: auto;
   box-shadow: none;
+  margin: 0;
 }
 
 /* タイマー画面 */
-#timer-screen h1 {
+#timer-screen h1,
+#stopwatch-container h1 { /* ストップウォッチにも適用 */
   font-size: 24px;
   margin-bottom: 5px;
+  color: #555;
 }
 
 #current-phase-display {
@@ -84,13 +90,24 @@ button:active {
   font-size: 80px;
   margin: 20px 0;
   font-family: monospace;
+  font-weight: bold;
+  color: #333;
 }
 
-/* ストップウォッチ画面 */
+/* ストップウォッチ画面の調整 */
+#stopwatch-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 #stopwatch-display {
-  font-size: 60px;
-  margin: 40px 0;
+  font-size: 80px; /* タイマーと同じサイズに */
+  margin: 20px 0;
   font-family: monospace;
+  font-weight: bold;
+  color: #333;
 }
 
 /* オーバーレイメニュー */
@@ -142,7 +159,28 @@ button:active {
 .study-mode { background-color: #e0ffe0; }
 .break-mode { background-color: #ffe0e0; }
 
-/* お気に入りセット管理 */
+/* お気に入りセット管理 - 登録フォーム */
+.set-registration {
+  background-color: #f0f8ff;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.set-registration label {
+  display: block; /* 縦並び */
+  text-align: left;
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.set-registration input {
+  margin-top: 5px;
+}
+
+/* お気に入りセット管理 - リスト表示 */
 #set-list {
   list-style: none;
   padding: 0;
@@ -151,18 +189,53 @@ button:active {
 
 #set-list li {
   background: #fff;
-  margin-bottom: 15px;
-  padding: 15px;
+  margin-bottom: 10px;
+  padding: 10px 15px;
   border-radius: 12px;
-  border: 1px solid #eee;
+  border: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between; /* 左右に配置 */
+  align-items: center; /* 上下中央揃え */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
+.set-info {
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 10px;
+  flex: 1; /* 余白を埋める */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.set-buttons {
+  display: flex;
+  gap: 5px; /* ボタン間の隙間 */
+  flex-shrink: 0; /* ボタン群は縮めない */
+}
+
+/* リスト内のボタン設定（上書き・削除・セット） */
 #set-list button {
   padding: 8px 12px;
-  font-size: 14px;
-  margin: 5px 5px 0 0;
-  width: auto;
-  border-radius: 8px;
+  font-size: 13px;
+  margin: 0; /* マージンリセット */
+  width: auto; /* 幅を自動調整 */
+  border-radius: 6px;
+  background-color: #77ebff;
+  box-shadow: none;
+  color: #333;
+}
+
+/* 特別な色分け（任意） */
+#set-list button:nth-child(2) { /* 削除ボタン */
+  background-color: #ffcccc;
+}
+#set-list button:nth-child(1) { /* セットボタン */
+   background-color: #90ee90;
+}
+#set-list button:nth-child(3) { /* 上書き（今回は順番が変わったので注意） */
+  /* script.jsで append の順番: Set -> Overwrite -> Delete */
 }
 
 /* グラフ・リストのレスポンシブ対応 */

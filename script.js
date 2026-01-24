@@ -422,7 +422,16 @@ function loadSetsToUI() {
   const sets = loadSets();
   sets.forEach((set, index) => {
     const li = document.createElement("li");
-    li.textContent = `${set.name} (勉強${set.study}分 + 休憩${set.rest}分) `;
+    
+    // テキスト部分をspanで囲む
+    const textSpan = document.createElement("span");
+    textSpan.className = "set-info";
+    textSpan.textContent = `${set.name} (${set.study}分+${set.rest}分)`;
+    li.appendChild(textSpan);
+
+    // ボタンをまとめるdiv（オプション）
+    const btnGroup = document.createElement("div");
+    btnGroup.className = "set-buttons";
 
     // --- 上書きボタン ---
     const overwriteBtn = document.createElement("button");
@@ -450,10 +459,11 @@ function loadSetsToUI() {
       document.getElementById('break-time').value = set.rest;
     };
 
-    li.appendChild(overwriteBtn);
-    li.appendChild(deleteBtn);
-    li.appendChild(runBtn);
-
+    btnGroup.appendChild(runBtn);
+    btnGroup.appendChild(overwriteBtn);
+    btnGroup.appendChild(deleteBtn);
+    
+    li.appendChild(btnGroup);
     list.appendChild(li);
   });
 }
