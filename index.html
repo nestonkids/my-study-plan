@@ -2,6 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>タイマー</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -43,17 +44,19 @@
 
   <h2>お気に入りセット管理</h2>
 
-<!-- 新しいセットを登録する入力欄 -->
-<label>セット名: <input type="text" id="set-name"></label>
-<label>勉強時間(分): <input type="number" id="set-study" min="1"></label>
-<label>休憩時間(分): <input type="number" id="set-break" min="1"></label>
-<button onclick="
-  saveSet(
-    document.getElementById('set-name').value,
-    parseInt(document.getElementById('set-study').value),
-    parseInt(document.getElementById('set-break').value)
-  )
-">保存</button>
+  <!-- 新しいセットを登録する入力欄 -->
+  <div class="set-registration">
+    <label>セット名: <input type="text" id="set-name"></label>
+    <label>勉強時間(分): <input type="number" id="set-study" min="1"></label>
+    <label>休憩時間(分): <input type="number" id="set-break" min="1"></label>
+    <button onclick="
+      saveSet(
+        document.getElementById('set-name').value,
+        parseInt(document.getElementById('set-study').value),
+        parseInt(document.getElementById('set-break').value)
+      )
+    ">保存</button>
+  </div>
 
 <!-- 保存済みのセットをリスト表示 -->
 <h3>登録済みセット（最大5件）</h3>
