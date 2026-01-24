@@ -8,7 +8,21 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <button class="back-button" onclick="history.back()">← 戻る</button>
+  <button id="menu-btn">メニュー</button>
+
+  <!-- メニュー用オーバーレイ -->
+  <div id="menu-overlay" style="display: none;">
+    <div class="menu-header">
+      <button id="menu-close">×</button>
+    </div>
+    <ul class="menu-list">
+      <li><a href="index.html">タイマー</a></li>
+      <li><a href="stopwatch.html">ストップウォッチ</a></li>
+      <li><a href="weekly-study.html">今週の勉強時間</a></li>
+      <li><a href="total-study.html">今までの勉強時間</a></li>
+      <li><a href="performance.html">成績の変遷</a></li>
+    </ul>
+  </div>
   
   <h1>今週の累積勉強時間</h1>
   <h2 id="weekly-hours">-- 時間</h2>
@@ -80,5 +94,6 @@
       }
     });
   </script>
+  <script src="script.js"></script>
 </body>
 </html>

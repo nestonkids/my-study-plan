@@ -14,6 +14,39 @@ const body = document.body; // body要素への参照
 let timer;             // setInterval のIDを保存（途中で止めるため必要）
 let totalTime = 0;     // 合計時間を保存するための変数（今回は未使用）
 let resumedState = null; // 一時停止したタイマーの状態を保持する変数
+let wakeLock = null;   // Screen Wake Lock APIのための変数
+
+/**
+ * 画面のスリープを防ぐ（Wake Lockを要求する）
+ */
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Wake Lock is active.');
+      // Wake Lockが解放されたときのイベント
+      wakeLock.addEventListener('release', () => {
+        console.log('Wake Lock was released.');
+        // ハンドルをnullに戻すことで、タブが再度表示されたときに再取得できるようにする
+        wakeLock = null;
+      });
+    } catch (err) {
+      // エラーが発生した場合（例: ユーザーが許可しなかった）
+      console.error(`${err.name}, ${err.message}`);
+    }
+  }
+}
+
+/**
+ * Wake Lockを解放する
+ */
+function releaseWakeLock() {
+  if (wakeLock !== null) {
+    wakeLock.release();
+    // release()を呼ぶと自動的に 'release' イベントが発火するので、
+    // ここで wakeLock = null; を設定する必要はない
+  }
+}
 
 /**
  * タイマーを開始する関数
@@ -52,6 +85,7 @@ function startTimer(duration, nextPhase) {
         currentPhaseDisplay.textContent = '';       // フェーズ表示をクリア
         body.classList.remove('break-mode');        // break-mode を削除
         startBtn.style.display = 'block';           // ボタンを再表示する
+        releaseWakeLock();                          // Wake Lockを解放
       }
     }
   }, 1000); // 1000msごとに実行（＝1秒）
@@ -151,6 +185,7 @@ if (startBtn) {
 
     if (resumedState) {
       // --- 再開処理 ---
+      requestWakeLock(); // Wake Lockを要求
       const duration = resumedState.remainingTime;
       const nextPhase = resumedState.phase === 'study' ? 'break' : 'end';
       
@@ -171,6 +206,7 @@ if (startBtn) {
       const breakTime = Number(breakInput.value);
 
       if (studyTime > 0 && breakTime > 0) {
+        requestWakeLock(); // Wake Lockを要求
         inputScreen.style.display = 'none';
         timerScreen.style.display = 'block';
         currentPhaseDisplay.textContent = '勉強時間';
@@ -327,6 +363,16 @@ if (document.getElementById("save-grade")) {
   });
 }
 // =================================
+// ページが表示されたときにWake Lockを再取得する
+// =================================
+document.addEventListener('visibilitychange', async () => {
+  // timerScreenが表示されていて、wakeLockがまだ取得されていない、かつページが表示状態のとき
+  if (timerScreen.style.display === 'block' && wakeLock === null && document.visibilityState === 'visible') {
+    await requestWakeLock();
+  }
+});
+
+// =================================
 // お気に入りセット管理
 // =================================
 const STORAGE_KEY_SETS = "favorite_sets"; // localStorageのキー
@@ -421,3 +467,53 @@ document.addEventListener("DOMContentLoaded", () => {
       loadSetsToUI();
   }
 });
+
+// ======================= ストップウォッチ機能 =======================
+if (document.getElementById('stopwatch-btn')) {
+  const stopwatchBtn = document.getElementById('stopwatch-btn');
+  const stopwatchDisplay = document.getElementById('stopwatch-display');
+
+  let stopwatchInterval;
+  let stopwatchStartTime = 0;
+  let isStopwatchRunning = false;
+
+  // 時間の表示を更新する関数
+  function updateStopwatchDisplay() {
+    const elapsedTime = Date.now() - stopwatchStartTime;
+    const hours = String(Math.floor(elapsedTime / 3600000)).padStart(2, '0');
+    const minutes = String(Math.floor((elapsedTime % 3600000) / 60000)).padStart(2, '0');
+    const seconds = String(Math.floor((elapsedTime % 60000) / 1000)).padStart(2, '0');
+    stopwatchDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+  }
+
+  stopwatchBtn.addEventListener('click', () => {
+    if (!isStopwatchRunning) {
+      // --- スタート処理 ---
+      stopwatchStartTime = Date.now();
+      stopwatchInterval = setInterval(updateStopwatchDisplay, 1000);
+      stopwatchBtn.textContent = '終了';
+      isStopwatchRunning = true;
+    } else {
+      // --- 終了処理 ---
+      clearInterval(stopwatchInterval);
+      const elapsedTime = Date.now() - stopwatchStartTime;
+      const elapsedMinutes = Math.floor(elapsedTime / 60000);
+
+      if (elapsedMinutes > 0) {
+        saveStudyMinutes(elapsedMinutes);
+        saveDailyMinutes(elapsedMinutes);
+        // 週次の記録関数もあれば呼び出す (既存コードに saveWeeklyMinutes があることを想定)
+        if (typeof saveWeeklyMinutes === 'function') {
+           saveWeeklyMinutes(elapsedMinutes);
+        }
+        alert(`${elapsedMinutes}分間の勉強時間を記録しました。`);
+      } else {
+        alert('1分未満の計測は記録されません。');
+      }
+
+      stopwatchDisplay.textContent = '00:00:00';
+      stopwatchBtn.textContent = 'スタート';
+      isStopwatchRunning = false;
+    }
+  });
+}

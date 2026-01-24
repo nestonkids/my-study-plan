@@ -2,11 +2,16 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>今までの勉強時間</title>
+  <title>ストップウォッチ</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <button id="menu-btn">メニュー</button>
+
+  <div id="stopwatch-container">
+    <div id="stopwatch-display">00:00:00</div>
+    <button id="stopwatch-btn">スタート</button>
+  </div>
 
   <!-- メニュー用オーバーレイ -->
   <div id="menu-overlay" style="display: none;">
@@ -15,22 +20,12 @@
     </div>
     <ul class="menu-list">
       <li><a href="index.html">タイマー</a></li>
-      <li><a href="stopwatch.html">ストップウォッチ</a></li>
       <li><a href="weekly-study.html">今週の勉強時間</a></li>
       <li><a href="total-study.html">今までの勉強時間</a></li>
       <li><a href="performance.html">成績の変遷</a></li>
     </ul>
   </div>
 
-  <h1>今までの累積勉強時間</h1>
-  <h2 id="study-hours">-- 時間</h2>
-
-  <script>
-    const totalMinutes = Number(localStorage.getItem('totalStudyMinutes')) || 0;
-    const totalHours = totalMinutes / 60;
-    const roundedHours = Math.round(totalHours * 10) / 10; // 小数点第二位を四捨五入して小数点第一位まで表示
-    document.getElementById('study-hours').textContent = `${roundedHours} 時間`;
-  </script>
   <script src="script.js"></script>
 </body>
 </html>
